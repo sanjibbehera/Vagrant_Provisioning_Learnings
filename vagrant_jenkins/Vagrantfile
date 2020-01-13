@@ -1,0 +1,39 @@
+IP_NW = "192.168.6."
+JENKINS_MASTER_IP = 10
+JENKINS_NODE_IP = 20
+
+Vagrant.configure("2") do |config|
+    config.vm.box = "centos/7"
+    config.vm.define "jenkins-master-vm" do |node|
+        node.vm.provider "virtualbox" do |vb|
+            vb.name = "jenkins-master"
+            vb.memory = 2048
+            vb.cpus = 2
+        end
+        node.vm.hostname = "jenkins-master-vm"
+        node.vm.network :private_network, ip: IP_NW + "#{JENKINS_MASTER_IP}"
+        node.vm.network "forwarded_port", guest: 22, host: 2710
+        node.vm.network "forwarded_port", guest: 8080, host: 8099
+
+        node.vm.provision "setup-hosts", :type => "shell", :path => "centos/setup-hosts.sh" do |s|
+            s.args = ["eth1"]
+        end
+        node.vm.provision "setup-dns", type: "shell", :path => "centos/update-dns.sh"
+        node.vm.provision "installJenkins", type: "shell", :path => "centos/installJenkins.sh"
+    end
+    config.vm.define "jenkins-node-vm" do |node|
+        node.vm.provider "virtualbox" do |vb|
+            vb.name = "jenkins-node"
+            vb.memory = 3072
+            vb.cpus = 2
+        end
+        node.vm.hostname = "jenkins-node-vm"
+        node.vm.network :private_network, ip: IP_NW + "#{JENKINS_NODE_IP}"
+        node.vm.network "forwarded_port", guest: 22, host: 2720
+
+        node.vm.provision "setup-hosts", :type => "shell", :path => "centos/setup-hosts.sh" do |s|
+            s.args = ["eth1"]
+        end
+        node.vm.provision "setup-dns", type: "shell", :path => "centos/update-dns.sh"
+    end
+end
