@@ -1,16 +1,19 @@
-IP_NW = "192.168.6."
+IP_NW = "192.168.7."
 JENKINS_MASTER_IP = 10
-JENKINS_NODE_IP = 20
+JENKINS_NODE_IP = 15
+NGINX_NODE_IP = 16
+NEXUS_NODE_IP = 17
+SONARQUBE_NODE_IP = 18
 
 Vagrant.configure("2") do |config|
     config.vm.box = "centos/7"
-    config.vm.define "jenkins-master-vm" do |node|
+    config.vm.define "jenkins-master" do |node|
         node.vm.provider "virtualbox" do |vb|
             vb.name = "jenkins-master"
-            vb.memory = 2048
+            vb.memory = 1024
             vb.cpus = 2
         end
-        node.vm.hostname = "jenkins-master-vm"
+        node.vm.hostname = "jenkins-master"
         node.vm.network :private_network, ip: IP_NW + "#{JENKINS_MASTER_IP}"
         node.vm.network "forwarded_port", guest: 22, host: 2710
         node.vm.network "forwarded_port", guest: 8080, host: 8099
@@ -21,13 +24,13 @@ Vagrant.configure("2") do |config|
         node.vm.provision "setup-dns", type: "shell", :path => "centos/update-dns.sh"
         node.vm.provision "installJenkins", type: "shell", :path => "centos/installJenkins.sh"
     end
-    config.vm.define "jenkins-node-vm" do |node|
+    config.vm.define "jenkins-node" do |node|
         node.vm.provider "virtualbox" do |vb|
             vb.name = "jenkins-node"
-            vb.memory = 3072
+            vb.memory = 1600
             vb.cpus = 2
         end
-        node.vm.hostname = "jenkins-node-vm"
+        node.vm.hostname = "jenkins-node"
         node.vm.network :private_network, ip: IP_NW + "#{JENKINS_NODE_IP}"
         node.vm.network "forwarded_port", guest: 22, host: 2720
 
@@ -35,5 +38,56 @@ Vagrant.configure("2") do |config|
             s.args = ["eth1"]
         end
         node.vm.provision "setup-dns", type: "shell", :path => "centos/update-dns.sh"
+    end
+    config.vm.define "nginx-node" do |node|
+        node.vm.provider "virtualbox" do |vb|
+            vb.name = "nginx-node"
+            vb.memory = 512
+            vb.cpus = 1
+        end
+        node.vm.hostname = "nginx-node"
+        node.vm.network :private_network, ip: IP_NW + "#{NGINX_NODE_IP}"
+        node.vm.network "forwarded_port", guest: 22, host: 2730
+        node.vm.network "forwarded_port", guest: 8080, host: 8095
+
+        node.vm.provision "setup-hosts", :type => "shell", :path => "centos/setup-hosts.sh" do |s|
+            s.args = ["eth1"]
+        end
+        node.vm.provision "setup-dns", type: "shell", :path => "centos/update-dns.sh"
+        node.vm.provision "installJenkins", type: "shell", :path => "centos/installNginx.sh"
+    end
+    config.vm.define "nexus-node" do |node|
+        node.vm.provider "virtualbox" do |vb|
+            vb.name = "nexus-node"
+            vb.memory = 3000
+            vb.cpus = 2
+        end
+        node.vm.hostname = "nexus-node"
+        node.vm.network :private_network, ip: IP_NW + "#{NEXUS_NODE_IP}"
+        node.vm.network "forwarded_port", guest: 22, host: 2740
+        node.vm.network "forwarded_port", guest: 8081, host: 8098
+
+        node.vm.provision "setup-hosts", :type => "shell", :path => "centos/setup-hosts.sh" do |s|
+            s.args = ["eth1"]
+        end
+        node.vm.provision "setup-dns", type: "shell", :path => "centos/update-dns.sh"
+        node.vm.provision "installNexus", type: "shell", :path => "centos/installNexus.sh"
+    end
+    config.vm.define "sonarqube-node" do |node|
+        node.vm.provider "virtualbox" do |vb|
+            vb.name = "sonarqube-node"
+            vb.memory = 2400
+            vb.cpus = 1
+        end
+        node.vm.hostname = "sonarqube-node"
+        node.vm.network :private_network, ip: IP_NW + "#{SONARQUBE_NODE_IP}"
+        node.vm.network "forwarded_port", guest: 22, host: 2750
+        node.vm.network "forwarded_port", guest: 9000, host: 8097
+
+        node.vm.provision "setup-hosts", :type => "shell", :path => "centos/setup-hosts.sh" do |s|
+            s.args = ["eth1"]
+        end
+        node.vm.provision "setup-dns", type: "shell", :path => "centos/update-dns.sh"
+        node.vm.provision "installSonar", type: "shell", :path => "centos/installSonar.sh"
     end
 end

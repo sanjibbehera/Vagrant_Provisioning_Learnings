@@ -8,6 +8,9 @@ sudo yum install -y wget
 
 # Update /etc/hosts about other hosts
 cat >> /etc/hosts <<EOF
-192.168.6.10  jenkins-master-vm
-192.168.6.20  jenkins-node-vm
+192.168.7.10  jenkins-master
+192.168.7.15  jenkins-node
+192.168.7.16  nginx-node
+192.168.7.17  nexus-node
+192.168.7.18  sonar-node
 EOF
