@@ -13,4 +13,5 @@ cat >> /etc/hosts <<EOF
 192.168.7.16  nginx-node
 192.168.7.17  nexus-node
 192.168.7.18  sonar-node
+192.168.7.19  bitbucket-node
 EOF
