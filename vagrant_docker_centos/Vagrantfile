@@ -1,17 +1,17 @@
 IP_NW = "192.168.8."
-DOCKER_DEV_NODE = 10
-DOCKER_TEST_NODE = 11
+DOCKER_NODE = 10
+DOCKER_REPO_NODE = 11
 
 Vagrant.configure("2") do |config|
     config.vm.box = "centos/7"
-    config.vm.define "docker-dev-vm" do |node|
+    config.vm.define "docker-vm" do |node|
         node.vm.provider "virtualbox" do |vb|
-            vb.name = "docker-dev-vm"
+            vb.name = "docker-vm"
             vb.memory = 3000
             vb.cpus = 2
         end
-        node.vm.hostname = "docker-dev-vm"
-        node.vm.network :private_network, ip: IP_NW + "#{JENKINS_DOCKER_NODE}"
+        node.vm.hostname = "docker-vm"
+        node.vm.network :private_network, ip: IP_NW + "#{DOCKER_NODE}"
         node.vm.network "forwarded_port", guest: 22, host: 2710
         node.vm.network "forwarded_port", guest: 8080, host: 8099
 
@@ -22,22 +22,22 @@ Vagrant.configure("2") do |config|
         #node.vm.provision "installDokcerJenkins", type: "shell", :path => "centos/installDokcerJenkins.sh"
         node.vm.provision "installDocker", type: "shell", :path => "centos/install-docker.sh"
     end
-    config.vm.define "docker-test-vm" do |node|
+    config.vm.define "docker-repo-vm" do |node|
         node.vm.provider "virtualbox" do |vb|
-            vb.name = "docker-test-vm"
+            vb.name = "docker-repo-vm"
             vb.memory = 3000
             vb.cpus = 2
         end
-        node.vm.hostname = "docker-test-vm"
-        node.vm.network :private_network, ip: IP_NW + "#{JENKINS_DOCKER_NODE}"
+        node.vm.hostname = "docker-repo-vm"
+        node.vm.network :private_network, ip: IP_NW + "#{DOCKER_REPO_NODE}"
         node.vm.network "forwarded_port", guest: 22, host: 2720
-        node.vm.network "forwarded_port", guest: 8090, host: 8098
+        node.vm.network "forwarded_port", guest: 8081, host: 8098
 
         node.vm.provision "setup-hosts", :type => "shell", :path => "centos/setup-hosts.sh" do |s|
             s.args = ["eth1"]
         end
         node.vm.provision "setup-dns", type: "shell", :path => "centos/update-dns.sh"
         #node.vm.provision "installDokcerJenkins", type: "shell", :path => "centos/installDokcerJenkins.sh"
-        node.vm.provision "installDocker", type: "shell", :path => "centos/install-docker.sh"
+        node.vm.provision "installNexus", type: "shell", :path => "centos/installNexus.sh"
     end
 end
