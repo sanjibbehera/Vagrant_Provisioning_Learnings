@@ -25,6 +25,7 @@ Vagrant.configure("2") do |config|
         node.vm.provision "setup-dns", type: "shell", :path => "centos/update-dns.sh"
         node.vm.provision "CreateUnixUsers", type: "shell", :path => "centos/createUnixUsers.sh"
         node.vm.provision "installJenkins", type: "shell", :path => "centos/installJenkins.sh"
+        node.vm.provision "installGit", type: "shell", :path => "centos/installGIT.sh"
     end
     config.vm.define "jenkins-node" do |node|
         node.vm.provider "virtualbox" do |vb|
@@ -42,6 +43,8 @@ Vagrant.configure("2") do |config|
         node.vm.provision "setup-dns", type: "shell", :path => "centos/update-dns.sh"
         node.vm.provision "installJava", type: "shell", :path => "centos/installJava.sh"
         node.vm.provision "installNode", type: "shell", :path => "centos/installNode.sh"
+        node.vm.provision "installGit", type: "shell", :path => "centos/installGIT.sh"
+		node.vm.provision "installDocker", type: "shell", :path => "centos/install-docker.sh"
     end
     config.vm.define "nginx-node" do |node|
         node.vm.provider "virtualbox" do |vb|
