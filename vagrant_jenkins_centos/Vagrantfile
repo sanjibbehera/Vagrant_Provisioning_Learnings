@@ -1,10 +1,12 @@
 IP_NW = "192.168.7."
 JENKINS_MASTER_IP = 10
-JENKINS_NODE_IP = 15
-NGINX_NODE_IP = 16
+JENKINS_JAVA_SLAVE_IP = 14
+JENKINS_NODE_SLAVE_IP = 15
+JENKINS_PYTHON_SLAVE_IP = 16
 NEXUS_NODE_IP = 17
 SONARQUBE_NODE_IP = 18
 BITBUCKET_NODE_IP = 19
+DOCKER_NODE_IP = 20
 
 Vagrant.configure("2") do |config|
     config.vm.box = "centos/7"
@@ -25,43 +27,64 @@ Vagrant.configure("2") do |config|
         node.vm.provision "setup-dns", type: "shell", :path => "centos/update-dns.sh"
         node.vm.provision "CreateUnixUsers", type: "shell", :path => "centos/createUnixUsers.sh"
         node.vm.provision "installJenkins", type: "shell", :path => "centos/installJenkins.sh"
-        node.vm.provision "installGit", type: "shell", :path => "centos/installGIT.sh"
+		node.vm.provision "installGit", type: "shell", :path => "centos/installGIT.sh"
     end
-    config.vm.define "jenkins-node" do |node|
+    config.vm.define "jenkins-java-node" do |node|
         node.vm.provider "virtualbox" do |vb|
-            vb.name = "jenkins-node"
+            vb.name = "jenkins-java-node"
             vb.memory = 1024
-            vb.cpus = 2
+            vb.cpus = 1
         end
-        node.vm.hostname = "jenkins-node"
-        node.vm.network :private_network, ip: IP_NW + "#{JENKINS_NODE_IP}"
+        node.vm.hostname = "jenkins-java-node"
+        node.vm.network :private_network, ip: IP_NW + "#{JENKINS_JAVA_SLAVE_IP}"
+        node.vm.network "forwarded_port", guest: 22, host: 2718
+
+        node.vm.provision "setup-hosts", :type => "shell", :path => "centos/setup-hosts.sh" do |s|
+            s.args = ["eth1"]
+        end
+        node.vm.provision "setup-dns", type: "shell", :path => "centos/update-dns.sh"
+        node.vm.provision "CreateUnixUsers", type: "shell", :path => "centos/createUnixUsersinJenkinsJavaSlave.sh"
+        node.vm.provision "installJava", type: "shell", :path => "centos/installJava.sh"
+		node.vm.provision "installGit", type: "shell", :path => "centos/installGIT.sh"
+		node.vm.provision "installDocker", type: "shell", :path => "centos/install-docker.sh"
+    end
+    config.vm.define "jenkins-nodejs-node" do |node|
+        node.vm.provider "virtualbox" do |vb|
+            vb.name = "jenkins-nodejs-node"
+            vb.memory = 1024
+            vb.cpus = 1
+        end
+        node.vm.hostname = "jenkins-nodejs-node"
+        node.vm.network :private_network, ip: IP_NW + "#{JENKINS_NODE_SLAVE_IP}"
+        node.vm.network "forwarded_port", guest: 22, host: 2719
+
+        node.vm.provision "setup-hosts", :type => "shell", :path => "centos/setup-hosts.sh" do |s|
+            s.args = ["eth1"]
+        end
+        node.vm.provision "setup-dns", type: "shell", :path => "centos/update-dns.sh"
+        node.vm.provision "CreateUnixUsers", type: "shell", :path => "centos/createUnixUsersinJenkinsNodeSlave.sh"
+        node.vm.provision "installNode", type: "shell", :path => "centos/installNode.sh"
+		node.vm.provision "installGit", type: "shell", :path => "centos/installGIT.sh"
+		node.vm.provision "installDocker", type: "shell", :path => "centos/install-docker.sh"
+    end
+    config.vm.define "jenkins-python-node" do |node|
+        node.vm.provider "virtualbox" do |vb|
+            vb.name = "jenkins-python-node"
+            vb.memory = 1024
+            vb.cpus = 1
+        end
+        node.vm.hostname = "jenkins-python-node"
+        node.vm.network :private_network, ip: IP_NW + "#{JENKINS_PYTHON_SLAVE_IP}"
         node.vm.network "forwarded_port", guest: 22, host: 2720
 
         node.vm.provision "setup-hosts", :type => "shell", :path => "centos/setup-hosts.sh" do |s|
             s.args = ["eth1"]
         end
         node.vm.provision "setup-dns", type: "shell", :path => "centos/update-dns.sh"
-        node.vm.provision "installJava", type: "shell", :path => "centos/installJava.sh"
-        node.vm.provision "installNode", type: "shell", :path => "centos/installNode.sh"
-        node.vm.provision "installGit", type: "shell", :path => "centos/installGIT.sh"
+        node.vm.provision "CreateUnixUsers", type: "shell", :path => "centos/createUnixUsersinJenkinsPythonSlave.sh"
+		node.vm.provision "installPython3", type: "shell", :path => "centos/installPython3.sh"
+		node.vm.provision "installGit", type: "shell", :path => "centos/installGIT.sh"
 		node.vm.provision "installDocker", type: "shell", :path => "centos/install-docker.sh"
-    end
-    config.vm.define "nginx-node" do |node|
-        node.vm.provider "virtualbox" do |vb|
-            vb.name = "nginx-node"
-            vb.memory = 512
-            vb.cpus = 1
-        end
-        node.vm.hostname = "nginx-node"
-        node.vm.network :private_network, ip: IP_NW + "#{NGINX_NODE_IP}"
-        node.vm.network "forwarded_port", guest: 22, host: 2730
-        node.vm.network "forwarded_port", guest: 8080, host: 8095
-
-        node.vm.provision "setup-hosts", :type => "shell", :path => "centos/setup-hosts.sh" do |s|
-            s.args = ["eth1"]
-        end
-        node.vm.provision "setup-dns", type: "shell", :path => "centos/update-dns.sh"
-        node.vm.provision "installJenkins", type: "shell", :path => "centos/installNginx.sh"
     end
     config.vm.define "nexus-node" do |node|
         node.vm.provider "virtualbox" do |vb|
@@ -114,5 +137,23 @@ Vagrant.configure("2") do |config|
         end
         node.vm.provision "setup-dns", type: "shell", :path => "centos/update-dns.sh"
         node.vm.provision "installMariaDB", type: "shell", :path => "centos/installMariaDB.sh"
+    end
+    config.vm.define "docker-node" do |node|
+        node.vm.provider "virtualbox" do |vb|
+            vb.name = "docker-node"
+            vb.memory = 1600
+            vb.cpus = 2
+        end
+        node.vm.hostname = "docker-node"
+        node.vm.network :private_network, ip: IP_NW + "#{DOCKER_NODE_IP}"
+        node.vm.network "forwarded_port", guest: 22, host: 2777
+        node.vm.network "forwarded_port", guest: 3306, host: 8068
+        node.vm.network "forwarded_port", guest: 8000, host: 6999
+
+        node.vm.provision "setup-hosts", :type => "shell", :path => "centos/setup-hosts.sh" do |s|
+            s.args = ["eth1"]
+        end
+        node.vm.provision "setup-dns", type: "shell", :path => "centos/update-dns.sh"
+		node.vm.provision "installDocker", type: "shell", :path => "centos/install-docker.sh"
     end
 end
