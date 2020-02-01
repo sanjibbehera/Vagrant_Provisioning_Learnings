@@ -5,8 +5,8 @@ JENKINS_NODE_SLAVE_IP = 15
 JENKINS_PYTHON_SLAVE_IP = 16
 NEXUS_NODE_IP = 17
 SONARQUBE_NODE_IP = 18
-BITBUCKET_NODE_IP = 19
 DOCKER_NODE_IP = 20
+ELK_NODE_IP = 21
 
 Vagrant.configure("2") do |config|
     config.vm.box = "centos/7"
@@ -128,28 +128,10 @@ Vagrant.configure("2") do |config|
         node.vm.provision "setup-dns", type: "shell", :path => "centos/update-dns.sh"
         node.vm.provision "installSonar", type: "shell", :path => "centos/installSonar.sh"
     end
-    config.vm.define "bitbucket-node" do |node|
-        node.vm.provider "virtualbox" do |vb|
-            vb.name = "bitbucket-node"
-            vb.memory = 1500
-            vb.cpus = 1
-        end
-        node.vm.hostname = "bitbucket-node"
-        node.vm.network :private_network, ip: IP_NW + "#{BITBUCKET_NODE_IP}"
-        node.vm.network "forwarded_port", guest: 22, host: 2760
-        node.vm.network "forwarded_port", guest: 3306, host: 8096
-        node.vm.network "forwarded_port", guest: 7990, host: 7990
-
-        node.vm.provision "setup-hosts", :type => "shell", :path => "centos/setup-hosts.sh" do |s|
-            s.args = ["eth1"]
-        end
-        node.vm.provision "setup-dns", type: "shell", :path => "centos/update-dns.sh"
-        node.vm.provision "installMariaDB", type: "shell", :path => "centos/installMariaDB.sh"
-    end
     config.vm.define "docker-node" do |node|
         node.vm.provider "virtualbox" do |vb|
             vb.name = "docker-node"
-            vb.memory = 2400
+            vb.memory = 2000
             vb.cpus = 2
         end
         node.vm.hostname = "docker-node"
@@ -163,5 +145,25 @@ Vagrant.configure("2") do |config|
         end
         node.vm.provision "setup-dns", type: "shell", :path => "centos/update-dns.sh"
 		node.vm.provision "installDocker", type: "shell", :path => "centos/install-docker.sh"
+    end
+    config.vm.define "elk-node" do |node|
+        node.vm.provider "virtualbox" do |vb|
+            vb.name = "elk-node"
+            vb.memory = 3500
+            vb.cpus = 1
+        end
+        node.vm.hostname = "elk-node"
+        node.vm.network :private_network, ip: IP_NW + "#{ELK_NODE_IP}"
+        node.vm.network "forwarded_port", guest: 22, host: 2760
+        node.vm.network "forwarded_port", guest: 3306, host: 8096
+        node.vm.network "forwarded_port", guest: 9200, host: 9200
+        node.vm.network "forwarded_port", guest: 5601, host: 5601
+
+        node.vm.provision "setup-hosts", :type => "shell", :path => "centos/setup-hosts.sh" do |s|
+            s.args = ["eth1"]
+        end
+        node.vm.provision "setup-dns", type: "shell", :path => "centos/update-dns.sh"
+        node.vm.provision "installJava", type: "shell", :path => "centos/installJava.sh"
+        node.vm.provision "installELK7x", type: "shell", :path => "centos/installELK7x.sh"
     end
 end
