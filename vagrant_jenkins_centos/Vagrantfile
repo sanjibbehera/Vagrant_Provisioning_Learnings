@@ -149,8 +149,8 @@ Vagrant.configure("2") do |config|
     config.vm.define "elk-node" do |node|
         node.vm.provider "virtualbox" do |vb|
             vb.name = "elk-node"
-            vb.memory = 3500
-            vb.cpus = 1
+            vb.memory = 4000
+            vb.cpus = 2
         end
         node.vm.hostname = "elk-node"
         node.vm.network :private_network, ip: IP_NW + "#{ELK_NODE_IP}"
