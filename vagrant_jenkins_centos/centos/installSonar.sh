@@ -1,8 +1,6 @@
 #!/bin/bash
 
-sudo yum update -y
-
-sudo yum install unzip -y
+sudo yum update -y && sudo yum install unzip java-1.8.0-openjdk-devel -y
 
 sudo sed -e "s/SELINUX=enforcing/SELINUX=disabled" -i /etc/sysconfig/selinux
 sudo echo "vm.max_map_count=262144" >> /etc/sysctl.conf && sudo echo "fs.file-max=65536" >> /etc/sysctl.conf
