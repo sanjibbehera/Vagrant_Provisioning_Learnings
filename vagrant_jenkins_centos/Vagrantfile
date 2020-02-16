@@ -47,6 +47,7 @@ Vagrant.configure("2") do |config|
         node.vm.provision "CreateUnixUsers", type: "shell", :path => "centos/createUnixUsersinSlaveNode.sh"
         node.vm.provision "installJava", type: "shell", :path => "centos/installJava.sh"
         node.vm.provision "installMariaDB", type: "shell", :path => "centos/installMariaDB.sh"
+        node.vm.provision "installAWSCLI", type: "shell", :path => "centos/installAWSCLI.sh"
 		node.vm.provision "installGit", type: "shell", :path => "centos/installGIT.sh"
 		node.vm.provision "installDocker", type: "shell", :path => "centos/install-docker.sh"
         node.vm.provision "installELKclients", type: "shell", :path => "centos/installELKclients.sh"
@@ -83,6 +84,7 @@ Vagrant.configure("2") do |config|
         node.vm.network :private_network, ip: IP_NW + "#{SONARQUBE_NODE_IP}"
         node.vm.network "forwarded_port", guest: 22, host: 2750
         node.vm.network "forwarded_port", guest: 9000, host: 8097
+        node.vm.network "forwarded_port", guest: 5432, host: 5555
 
         node.vm.provision "setup-hosts", :type => "shell", :path => "centos/setup-hosts.sh" do |s|
             s.args = ["eth1"]
@@ -109,6 +111,8 @@ Vagrant.configure("2") do |config|
         end
         node.vm.provision "setup-dns", type: "shell", :path => "centos/update-dns.sh"
 		node.vm.provision "installDocker", type: "shell", :path => "centos/install-docker.sh"
+        node.vm.provision "installJava", type: "shell", :path => "centos/installJava.sh"
+        node.vm.provision "installAWSCLI", type: "shell", :path => "centos/installAWSCLI.sh"
         node.vm.provision "installELKclients", type: "shell", :path => "centos/installELKclients.sh"
     end
     config.vm.define "elk-node" do |node|
